@@ -149,7 +149,10 @@ form.addEventListener("submit", async (event) => {
 
 
 async function editTask(task) {
-    const newTitle = prompt("Enter new task title:", task.title);
+    const newTitle = prompt(
+        "Enter new task title:",
+        task.title
+    );
 
     if (newTitle === null) {
         return;
@@ -162,10 +165,35 @@ async function editTask(task) {
         return;
     }
 
+    const newPriority = prompt(
+        "Enter priority (low, medium, high):",
+        task.priority
+    );
+
+    if (newPriority === null) {
+        return;
+    }
+
+    const trimmedPriority = newPriority.trim().toLowerCase();
+
+    if (!["low", "medium", "high"].includes(trimmedPriority)) {
+        alert("Priority must be low, medium, or high.");
+        return;
+    }
+
+    const newDueDate = prompt(
+        "Enter due date:",
+        task.due_date || ""
+    );
+
+    if (newDueDate === null) {
+        return;
+    }
+
     const updatedTask = {
         title: trimmedTitle,
-        priority: task.priority,
-        due_date: task.due_date,
+        priority: trimmedPriority,
+        due_date: newDueDate.trim() || null,
         status: task.status
     };
 
@@ -179,7 +207,10 @@ async function editTask(task) {
         });
 
         if (!response.ok) {
-            throw new Error("Failed to update task");
+            const errorData = await response.json();
+            throw new Error(
+                errorData.detail || "Failed to update task"
+            );
         }
 
         const savedTask = await response.json();
@@ -200,7 +231,6 @@ async function editTask(task) {
         alert(error.message);
     }
 }
-
 
 async function deleteTask(taskId) {
     const confirmed = confirm("Delete this task?");
