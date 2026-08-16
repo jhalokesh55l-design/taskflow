@@ -55,9 +55,9 @@ class UserCreate(BaseModel):
 class ProjectCreate(BaseModel):
     name: str
     owner_id: int
-
 class QuickAddRequest(BaseModel):
-    text: str
+    description: str
+    project_id: int
 
 class TaskCreate(BaseModel):
     title: str
@@ -206,21 +206,20 @@ def create_task(
     db.refresh(new_task)
 
     return new_task
-
 @app.post("/tasks/quick-add", status_code=201)
 def quick_add_task(
     request: QuickAddRequest,
     db: Session = Depends(get_db)
 ):
     try:
-        parsed = parse_quick_add(request.text)
+        parsed = parse_quick_add(request.description)
     except ValueError as error:
         raise HTTPException(
             status_code=422,
             detail=str(error)
         )
 
-    project_id = 1
+    project_id = request.project_id
 
     if parsed["project"]:
         project = (
@@ -242,7 +241,7 @@ def quick_add_task(
     if not project:
         raise HTTPException(
             status_code=404,
-            detail="Default project not found"
+            detail="Project not found"
         )
 
     new_task = Task(
